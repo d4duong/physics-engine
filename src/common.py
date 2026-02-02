@@ -232,4 +232,5 @@ def draw_arrow(start: Vector2, end: Vector2, surface: pygame.Surface):
   pygame.draw.polygon(surface, (0, 0, 255), world_to_screen([a, end, c]))
   
 def avg(points: list[Vector2]):
-  return Vector2(sum(map(lambda p: p.x, points)) / len(points), sum(map(lambda p: p.y, points)) / len(points))
+  return Vector2(sum([p.x for p in points]) / len(points), sum([p.y for p in points]) / len(points))
+

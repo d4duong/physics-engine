@@ -156,7 +156,6 @@ class Controller:
           if event.key == pygame.K_c:
             print('removed all movable entities')
             self.engine.bodies = [b for b in self.engine.bodies if b.mass < 0]
-            self.engine.id_gen = len(self.engine.bodies)
       
       # say we have a click / hover event
       # - first, make the UI consume the click / hover / mousedown / mouseup

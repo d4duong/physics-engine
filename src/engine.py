@@ -208,9 +208,7 @@ class DragablePolygon:
     return Drawable(to_draw, Vector2(hitbox_rect.bottomleft))
 
 class DragStateInstance(StateInstance):
-  
   def __init__(self, drag_state: Drag, engine: 'Engine') -> None:
-    
     self.engine = engine
     # so, for every movable polygon, add a hitbox
     self.dragable_polygons: list[DragablePolygon] = [DragablePolygon(p) for p in self.engine.bodies if p.mass > 0]
@@ -233,6 +231,17 @@ class DragStateInstance(StateInstance):
       b.hitbox.update(mouse_event if mouse_event else MouseEvent(Vector2(-1, -1), 'none'), b.hitbox == best)
 
     self.engine.extra_to_draw_frame = [b.get_hitbox_drawable() for b in self.dragable_polygons]
+
+
+class DeleteStateInstance(StateInstance):
+  def __init__(self, engine: 'Engine') -> None:
+    
+    # so, create hitboxes for all bodies
+    # - upon deletion, delete the hitbox
+    # - so, use a set??
+    
+    super().__init__()
+
 
 
 def get_new_state_instance_from_global(global_state: StateManager, engine: 'Engine', mouse_pos: Vector2):
@@ -259,8 +268,8 @@ class Engine:
   def __init__(self, global_state_manager: StateManager):
     self.bodies: list[Polygon] = []
     self.timer = 0
-    self.id_gen = 0
-
+    
+    self.taken_ids = set[int]()
     self.global_state_manager = global_state_manager
     self.global_state_manager.add_subscriber(self)
     
@@ -272,7 +281,7 @@ class Engine:
     
   def remove_movable_bodies(self):
     self.bodies = [b for b in self.bodies if b.mass < 0]
-    self.id_gen = len(self.bodies)
+    # self.id_gen = len(self.bodies)
   
   def add_polygonal_body(self, points: list[Vector2], immovable: bool = False):
     """
@@ -280,11 +289,19 @@ class Engine:
       immovable: self explanatory\n
       returns the polygonal body created
     """
-    new_body = Polygon(points, self.id_gen, immovable)
-    self.id_gen += 1
+    new_id = 0 # find MEX, ceebs making it efficient for now
+    while new_id in self.taken_ids:
+      new_id += 1
+    new_body = Polygon(points, new_id, immovable)
     self.bodies.append(new_body)
+    self.taken_ids.add(new_id)
     return new_body
   
+  def remove_polygonal_body(self, body: Polygon):
+    self.bodies = [b for b in self.bodies if b != body]
+    self.taken_ids.remove(body.body_id)
+
+
   def apply_force(self, target: Polygon, contact_point_world: Vector2, force_vector: Vector2):
     target.apply_force(contact_point_world, force_vector)
   
